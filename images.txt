@@ -1,0 +1,8 @@
+Each written digit was edited to fit in a 20x20 space in a 28x28 image.
+
+Dataset origin:
+Special Database 3: written by Census bureau employees
+Special Database 1: written by high school students
+
+training set: 30k patterns from SD-3 and 30K patterns from SD-1 from 250 writers shuffled
+test set: 5k patterns from SD-3 and 5k patterns from SD-1. The first 5000 are cleaner and easier than the last 5000.
