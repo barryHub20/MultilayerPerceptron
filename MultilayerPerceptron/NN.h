@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
@@ -48,6 +49,7 @@ public:
 	void initRandomize(int layer, int index, int totalWeights);
 	void initAsPixel(int layer, int index, double pixel);
 	void initFromFile(int layer, int index, const vector<double>& weights, double bias);
+	void reset();
 
 	// calculate activations
 	void calculateActivation(vector<Neuron>& prevLayer);

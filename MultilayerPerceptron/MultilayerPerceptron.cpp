@@ -216,7 +216,6 @@ void initNeuron(vector< vector<Neuron> >& layerList)
 	// each neuron of layer N will have a sum of weights equal to the sum of neurons in Layer N - 1
 	for (int i = 1; i < layerList.size(); ++i)	// start from layer 1
 	{
-		cout << layerList[i].size() << endl;
 		for (int j = 0; j < layerList[i].size(); ++j)
 		{
 			layerList[i][j].initRandomize(i, j, layerList[i - 1].size());
@@ -232,11 +231,11 @@ void saveToTextFile(vector< vector<Neuron> >& layerList)
 	if (myfile.is_open())
 	{
 		// layer by index ascending order
-		for (int i = 0; i < layerList.size(); ++i)
+		for (int i = 1; i < layerList.size(); ++i)
 		{
-			for (int k = 0; k < layerList[i].size(); ++k)
+			for (int j = 0; j < layerList[i].size(); ++j)
 			{
-				layerList[i][k].writeToFile(myfile);
+				layerList[i][j].writeToFile(myfile);
 			}
 		}
 
@@ -253,59 +252,39 @@ void saveToTextFile(vector< vector<Neuron> >& layerList)
 void readFromTextFile(vector< vector<Neuron> >& layerList)
 {
 	string line;
+	string line2;
 	ifstream myfile("data.txt");
 
 	if (myfile.is_open())
 	{
-		int count = 0;
-		int count2 = 0;
-		int layer1_total = 784 * 16 + 16;	// weights and biases
-		int layer2_total = layer1_total + 16 * 16 + 16;	// weights and biases
-		int currentLayer = 1;
-		int totalWeights = 784;
-		int neuronIdx = 0;
-
-		vector<double> weights;
-		weights.resize(784, 0.0);
-		double bias = 0.0;
-
-		// loop through all data
-		while (getline(myfile, line, ','))
+		for (int i = 1; i < layerList.size(); ++i)
 		{
-			// layer check
-			if (count == layer1_total) { currentLayer = 2; totalWeights = 16; weights.resize(16, 0.0); neuronIdx = 0; }
-			if (count == layer2_total) { currentLayer = 3; totalWeights = 16; weights.resize(16, 0.0); neuronIdx = 0; }
+			int totalWeights = layerList[i - 1].size();
 
-			// add weight and bias
-			if (count2 < totalWeights)
+			// init storage data
+			vector<double> weights;
+			weights.resize(totalWeights, 0.0);
+			double bias = 0.0;
+
+			for (int j = 0; j < layerList[i].size(); ++j)
 			{
-				weights[count2] = stod(line);
+				getline(myfile, line, '~');	// line is all the data for this neuron
+
+				stringstream neuronStream;	// parse data into stream object
+				neuronStream << line;
+
+				// each individual weight/bias
+				for (int k = 0; k < totalWeights; ++k)
+				{
+					getline(neuronStream, line2, ',');
+					weights[k] = stod(line2);
+				}
+				getline(neuronStream, line2, ',');
+				bias = stod(line2);
+
+				// init neuron
+				layerList[i][j].initFromFile(i, j, weights, bias);
 			}
-			else
-			{
-				bias = stod(line);
-
-				// add to neuron
-				if (currentLayer == 1)
-				{
-					layerList[1][neuronIdx].initFromFile(currentLayer, neuronIdx, weights, bias);
-				}
-				else if (currentLayer == 2)
-				{
-					layerList[2][neuronIdx].initFromFile(currentLayer, neuronIdx, weights, bias);
-				}
-				else
-				{
-					layerList[3][neuronIdx].initFromFile(currentLayer, neuronIdx, weights, bias);
-				}
-
-				neuronIdx++;
-				count2 = -1;
-			}
-
-			// cont
-			count++;
-			count2++;
 		}
 		myfile.close();
 	}
@@ -386,7 +365,7 @@ void printInfo(vector< vector<Neuron> >& layerList)
 /************************************************************************************************************
 MLP: main function
 *************************************************************************************************************/
-void MLP_train()
+void MLP_train(vector< vector<Neuron> >& layerList)
 {
 	// read pixels and labels
 	vector<char> contents;
@@ -394,18 +373,6 @@ void MLP_train()
 	vector<char> labels;
 	readMnistFile("train-images.idx3-ubyte", contents);
 	readMnistFile("train-labels.idx1-ubyte", labels);
-
-	// dynamic
-	vector< vector<Neuron> > layerList;
-
-	// how many layers
-	layerList.resize(4);
-
-	// each layer
-	layerList[0].resize(784);	// image (16 x 16)
-	layerList[1].resize(16);
-	layerList[2].resize(16);
-	layerList[3].resize(10);
 
 	// init
 	initNeuron(layerList);
@@ -461,7 +428,7 @@ void MLP_train()
 /************************************************************************************************************
 MLP: test function
 *************************************************************************************************************/
-void MLP_test()
+void MLP_test(vector< vector<Neuron> >& layerList)
 {
 	// read pixels and labels
 	vector<char> contents;
@@ -469,23 +436,11 @@ void MLP_test()
 	readMnistFile("t10k-images.idx3-ubyte", contents);
 	readMnistFile("t10k-labels.idx1-ubyte", labels);
 
-	// dynamic
-	vector< vector<Neuron> > layerList;
-
-	// how many layers
-	layerList.resize(4);
-
-	// each layer
-	layerList[0].resize(784);	// image (16 x 16)
-	layerList[1].resize(16);
-	layerList[2].resize(16);
-	layerList[3].resize(10);
-
 	// read off text file
 	readFromTextFile(layerList);
 
 	// test
-	// printInfo(layer_1, layer_2, layer_3);
+	// printInfo(layerList);
 
 	// init
 	int correctCount = 0;
@@ -499,9 +454,9 @@ void MLP_test()
 		// calculate activations
 		for (int i = 1; i < layerList.size(); ++i)
 		{
-			for (int k = 0; k < layerList[i].size(); ++k)
+			for (int j = 0; j < layerList[i].size(); ++j)
 			{
-				layerList[i][k].calculateActivation(layerList[i - 1]);
+				layerList[i][j].calculateActivation(layerList[i - 1]);
 			}
 		}
 
@@ -552,7 +507,19 @@ int main()
 
 	//Testing();
 
-	MLP_train();
+	// dynamic
+	vector< vector<Neuron> > layerList;
+
+	// how many layers
+	layerList.resize(4);
+
+	// each layer
+	layerList[0].resize(784);	// image (16 x 16)
+	layerList[1].resize(26);
+	layerList[2].resize(26);
+	layerList[3].resize(10);
+
+	MLP_train(layerList);
 	cin.get();
-	MLP_test();
+	MLP_test(layerList);
 }

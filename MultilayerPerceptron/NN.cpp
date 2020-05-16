@@ -2,15 +2,21 @@
 
 Neuron::Neuron()
 {
-	// indexing
+	reset();
+}
+Neuron::~Neuron() {}
+
+// called to reset all values
+void Neuron::reset()
+{
 	layer = index = 0;
 	localGradient = bias = biasGradient = z = a = 0.0;
 }
-Neuron::~Neuron() {}
 
 // called when beginning training
 void Neuron::initRandomize(int layer, int index, int totalWeights)
 {
+	reset();
 	this->layer = layer;
 	this->index = index;
 
@@ -24,10 +30,11 @@ void Neuron::initRandomize(int layer, int index, int totalWeights)
 	weights.resize(totalWeights);
 	weightsGradients.resize(totalWeights);
 	prevGradients.resize(totalWeights);
-	double divider = 0.0;
+	double divider = 100000000.0 / layer;
+
 	for (int i = 0; i < totalWeights; ++i)
 	{
-		if (layer == 1)
+		/*if (layer == 1)
 		{
 			divider = 10000000.0;
 		}
@@ -38,7 +45,7 @@ void Neuron::initRandomize(int layer, int index, int totalWeights)
 		else
 		{
 			divider = 1000.0;
-		}
+		}*/
 
 		weights[i] = (double)(rand() % 100 + 0) / divider;
 
@@ -60,6 +67,7 @@ void Neuron::initAsPixel(int layer, int index, double pixel)
 
 void Neuron::initFromFile(int layer, int index, const vector<double>& _weights, double bias)
 {
+	reset();
 	this->layer = layer;
 	this->index = index;
 
@@ -185,7 +193,7 @@ void Neuron::writeToFile(ofstream& myFile)
 	{
 		myFile << std::to_string(weights[i]) << ",";
 	}
-	myFile << bias << ",";
+	myFile << bias << "~";
 }
 
 double sigmoldFunction(double x)
