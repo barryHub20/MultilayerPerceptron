@@ -6,9 +6,10 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 using namespace std;
-#define TOTAL_SERIES 100
+#define TOTAL_SERIES 30
 #define TOTAL_ITERATIONS 60000
-const double learningRate = 0.01;
+#define MOMENTUM 0.9
+const double learningRate = 0.03;
 
 /************************************************************************************************************
 Helper functions
@@ -30,6 +31,7 @@ public:
 	// prev. layer
 	vector<double> weights;	// from prev. neuron
 	vector<double> weightsGradients;
+	vector<double> prevGradients;
 	double bias; //	from previous weights
 	double biasGradient;
 
@@ -56,7 +58,7 @@ public:
 	// gradient descent L - 1
 	void applyDerivatives(Neuron* nextLayer, Neuron* prevLayer, int nextLayerSize);
 
-	void apply();
+	void apply(int iteration);
 
 	// misc funtions
 	void print();

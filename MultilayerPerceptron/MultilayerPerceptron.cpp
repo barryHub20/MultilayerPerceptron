@@ -480,17 +480,18 @@ void MLP_train()
 			backPropagation(layer_0, layer_1, layer_2, layer_3, yRow);
 
 			// apply gradient
+			int iteration = i + (x * TOTAL_ITERATIONS);
 			for (int i = 0; i < 16; ++i)
 			{
-				layer_1[i].apply();
+				layer_1[i].apply(iteration);
 			}
 			for (int i = 0; i < 16; ++i)
 			{
-				layer_2[i].apply();
+				layer_2[i].apply(iteration);
 			}
 			for (int i = 0; i < 10; ++i)
 			{
-				layer_3[i].apply();
+				layer_3[i].apply(iteration);
 			}
 
 			// print
@@ -549,8 +550,8 @@ void MLP_test()
 
 	// init
 	int correctCount = 0;
-	int testTotal = 500;
-	int startIndex = 8000;
+	int testTotal = 10000;
+	int startIndex = 0;
 	for (int i = startIndex; i < testTotal + startIndex; ++i)
 	{
 		getImage1D(contents, i, layer_0);
@@ -585,13 +586,13 @@ void MLP_test()
 		// results!
 		if (brightestNeuron == label)
 		{
-			cout << "Correct guess at " << i << ", " << label << " and " << brightestNeuron << endl;
-			printImage(layer_0);
+			// cout << "Correct guess at " << i << ", " << label << " and " << brightestNeuron << endl;
+			// printImage(layer_0);
 			correctCount++;
 		}
 		else {
-			cout << "Wrong guess at " << i << ", correct label is " << label << ", not " << brightestNeuron << endl;
-			printImage(layer_0);
+			// cout << "Wrong guess at " << i << ", correct label is " << label << ", not " << brightestNeuron << endl;
+			// printImage(layer_0);
 		}
 
 		if (i % 500 == 0)
@@ -617,7 +618,7 @@ int main()
 
 	//Testing();
 
-	// MLP_train();
-	// cin.get();
+	MLP_train();
+	cin.get();
 	MLP_test();
 }

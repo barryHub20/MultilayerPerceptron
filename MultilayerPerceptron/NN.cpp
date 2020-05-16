@@ -20,18 +20,20 @@ void Neuron::initRandomize(int layer, int index, int totalWeights)
 	// weights
 	weights.clear();
 	weightsGradients.clear();
+	prevGradients.clear();
 	weights.resize(totalWeights);
 	weightsGradients.resize(totalWeights);
+	prevGradients.resize(totalWeights);
 	for (int i = 0; i < totalWeights; ++i)
 	{
 		double divider = 0.0;
 		if (layer == 1)
 		{
-			divider = 10000000.0;
+			divider = 10000000000.0;
 		}
 		else if (layer == 2)
 		{
-			divider = 100000.0;
+			divider = 1000000.0;
 		}
 		else
 		{
@@ -39,6 +41,13 @@ void Neuron::initRandomize(int layer, int index, int totalWeights)
 		}
 
 		weights[i] = (double)(rand() % 100 + 0) / divider;
+
+		if (rand() % 2 == 0)
+		{
+			weights[i] = -weights[i];
+		}
+
+		prevGradients[i] = 0.0;
 	}
 }
 
@@ -127,12 +136,39 @@ void Neuron::print()
 	cout << endl;
 }
 
-void Neuron::apply()
+void Neuron::apply(int iteration)
 {
 	for (int i = 0; i < weights.size(); ++i)
 	{
+		// normal
 		weights[i] = weights[i] - weightsGradients[i] * learningRate;
+		prevGradients[i] = weightsGradients[i] * learningRate;
 	}
+
+	//if (iteration == 0)
+	//{
+	//	for (int i = 0; i < weights.size(); ++i)
+	//	{
+	//		// normal
+	//		weights[i] = weights[i] - weightsGradients[i] * learningRate;
+	//		prevGradients[i] = weightsGradients[i] * learningRate;
+	//	}
+	//}
+	//else 
+	//{
+	//	for (int i = 0; i < weights.size(); ++i)
+	//	{
+	//		// momentum
+	//		double v = MOMENTUM * prevGradients[i] + weightsGradients[i] * learningRate;
+	//		weights[i] = weights[i] - v;
+
+	//		// Nesterov Accelerated Gradient
+	//		/*double v = MOMENTUM * prevGradients[i] - weightsGradients[i] * learningRate;
+	//		weights[i] = weights[i] - MOMENTUM * prevGradients[i] + (1 + MOMENTUM) * v;*/
+
+	//		prevGradients[i] = v;
+	//	}
+	//}
 
 	bias -= biasGradient * learningRate;
 }
