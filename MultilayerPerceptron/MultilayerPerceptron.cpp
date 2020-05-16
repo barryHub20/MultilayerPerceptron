@@ -128,7 +128,7 @@ void Testing()
 		// cost
 		double cost = (a_0_3 - y) * (a_0_3 - y);	// adds up over all layer L Neuron
 
-		cout << "a_0_3: " << a_0_3 <<  " Y: " << y << " Cost: " << cost << endl << endl;
+		cout << "a_0_3: " << a_0_3 << " Y: " << y << " Cost: " << cost << endl << endl;
 
 		// derivatives layer 3
 		double wd_0_3 = a_0_2 * sigmoldDerivative(a_0_3) * (2 * (a_0_3 - y));
@@ -172,7 +172,7 @@ void Testing()
 MLP: helper functions
 *************************************************************************************************************/
 // tested
-void getImage1D(const vector<char>& contents, int imageIdx, Neuron layer_0[784])
+void getImage1D(const vector<char>& contents, int imageIdx, vector<Neuron>& layer_0)
 {
 	int start = 16 + imageIdx * 784;
 	int counter = 0;
@@ -186,14 +186,14 @@ void getImage1D(const vector<char>& contents, int imageIdx, Neuron layer_0[784])
 }
 
 // tested
-void printImage(Neuron layer_0[784])
+void printImage(vector<Neuron>& layer0)
 {
 	// testing
 	for (int i = 0; i < 28; ++i)
 	{
 		for (int j = 0; j < 28; ++j)
 		{
-			if (layer_0[i * 28 + j].a == 0.0)
+			if (layer0[i * 28 + j].a == 0.0)
 				cout << '*';
 			else
 				cout << '0';
@@ -211,80 +211,50 @@ int getImageLabel(const vector<char>& labels, int imageIdx)
 }
 
 // tested
-void initNeuron(Neuron layer_1[16], Neuron layer_2[16], Neuron layer_3[10])
+void initNeuron(vector< vector<Neuron> >& layerList)
 {
-	// layer 0 is the pixels
-	// layer 1 (prev. 784 Neuron) and layer 2 (prev. 16 Neuron)
-	for (int i = 0; i < 16; ++i)
+	// each neuron of layer N will have a sum of weights equal to the sum of neurons in Layer N - 1
+	for (int i = 1; i < layerList.size(); ++i)	// start from layer 1
 	{
-		layer_1[i].initRandomize(1, i, 784);
-		layer_2[i].initRandomize(2, i, 16);
-	}
-
-	// layer 3 (prev. 16 Neuron)
-	for (int i = 0; i < 10; ++i)
-	{
-		layer_3[i].initRandomize(3, i, 16);
-	}
-}
-
-// tested
-void printNeurons(Neuron layer_1[16], Neuron layer_2[16], Neuron layer_3[10])
-{
-	for (int i = 0; i < 16; ++i)
-	{
-		layer_1[i].print();
-	}
-	for (int i = 0; i < 16; ++i)
-	{
-		layer_2[i].print();
-	}
-	for (int i = 0; i < 10; ++i)
-	{
-		layer_3[i].print();
+		cout << layerList[i].size() << endl;
+		for (int j = 0; j < layerList[i].size(); ++j)
+		{
+			layerList[i][j].initRandomize(i, j, layerList[i - 1].size());
+		}
 	}
 }
 
 // tested
 // read function MUST follow the same format as used here
-void saveToTextFile(Neuron layer_1[16], Neuron layer_2[16], Neuron layer_3[10])
+void saveToTextFile(vector< vector<Neuron> >& layerList)
 {
 	ofstream myfile("data.txt");
 	if (myfile.is_open())
 	{
-		// layer 1
-		for (int i = 0; i < 16; ++i)
+		// layer by index ascending order
+		for (int i = 0; i < layerList.size(); ++i)
 		{
-			layer_1[i].writeToFile(myfile);
-		}
-
-		// layer 2
-		for (int i = 0; i < 16; ++i)
-		{
-			layer_2[i].writeToFile(myfile);
-		}
-
-		// layer 3
-		for (int i = 0; i < 10; ++i)
-		{
-			layer_3[i].writeToFile(myfile);
+			for (int k = 0; k < layerList[i].size(); ++k)
+			{
+				layerList[i][k].writeToFile(myfile);
+			}
 		}
 
 		myfile.close();
 		cout << "Data saved to text file" << endl;
 	}
-	else 
+	else
 	{
 		cout << "Unable to open file" << endl;
 	}
 }
 
 // tested
-void readFromTextFile(Neuron layer_1[16], Neuron layer_2[16], Neuron layer_3[10])
+void readFromTextFile(vector< vector<Neuron> >& layerList)
 {
 	string line;
 	ifstream myfile("data.txt");
-	
+
 	if (myfile.is_open())
 	{
 		int count = 0;
@@ -318,15 +288,15 @@ void readFromTextFile(Neuron layer_1[16], Neuron layer_2[16], Neuron layer_3[10]
 				// add to neuron
 				if (currentLayer == 1)
 				{
-					layer_1[neuronIdx].initFromFile(currentLayer, neuronIdx, weights, bias);
+					layerList[1][neuronIdx].initFromFile(currentLayer, neuronIdx, weights, bias);
 				}
 				else if (currentLayer == 2)
 				{
-					layer_2[neuronIdx].initFromFile(currentLayer, neuronIdx, weights, bias);
+					layerList[2][neuronIdx].initFromFile(currentLayer, neuronIdx, weights, bias);
 				}
 				else
 				{
-					layer_3[neuronIdx].initFromFile(currentLayer, neuronIdx, weights, bias);
+					layerList[3][neuronIdx].initFromFile(currentLayer, neuronIdx, weights, bias);
 				}
 
 				neuronIdx++;
@@ -349,18 +319,18 @@ void readFromTextFile(Neuron layer_1[16], Neuron layer_2[16], Neuron layer_3[10]
 MLP: derivative functions
 *************************************************************************************************************/
 // tested
-double getTotalCost(Neuron layer_3[10], vector<double>& yRow)
+double getTotalCost(vector<Neuron>& lastLayer, vector<double>& yRow)
 {
 	double cost = 0.0;
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < lastLayer.size(); ++i)
 	{
-		cost += (layer_3[i].a - yRow[i]) * (layer_3[i].a - yRow[i]);
+		cost += (lastLayer[i].a - yRow[i]) * (lastLayer[i].a - yRow[i]);
 	}
 	return cost;
 }
 
-// test
-void getImageAndDetails(const vector<char>& contents, vector<double>& yRow, const vector<char>& labels, Neuron* layer_0, int index)
+// tested
+void getImageAndDetails(const vector<char>& contents, vector<double>& yRow, const vector<char>& labels, vector<Neuron>& layer_0, int index)
 {
 	// init
 	getImage1D(contents, index, layer_0);
@@ -370,58 +340,46 @@ void getImageAndDetails(const vector<char>& contents, vector<double>& yRow, cons
 }
 
 // tested
-void applyDerivativesLast(Neuron* layer_J, Neuron* layer_K, int layer_J_count, const vector<double>& Yj)
+void applyDerivativesLast(vector<Neuron>& layer_J, vector<Neuron>& layer_K, const vector<double>& Yj)
 {
-	for (int i = 0; i < layer_J_count; ++i)
+	for (int i = 0; i < layer_J.size(); ++i)
 	{
 		layer_J[i].applyDerivativesLast(layer_K, Yj[i]);
 	}
 }
 
 // tested
-void applyDerivatives(Neuron* layer_I, Neuron* layer_J, Neuron* layer_K, int layer_J_count, int layer_I_count)
+void applyDerivatives(vector<Neuron>& layer_I, vector<Neuron>& layer_J, vector<Neuron>& layer_K)
 {
-	for (int i = 0; i < layer_J_count; ++i)
+	for (int i = 0; i < layer_J.size(); ++i)
 	{
-		layer_J[i].applyDerivatives(layer_I, layer_K, layer_I_count);
+		layer_J[i].applyDerivatives(layer_I, layer_K);
 	}
 }
 
 // tested
-void backPropagation(Neuron layer_0[784], Neuron layer_1[16], Neuron layer_2[16], Neuron layer_3[10], const vector<double>& final_Yj)
+void backPropagation(vector< vector<Neuron> >& layerList, const vector<double>& final_Yj)
 {
-	// calculate derivatives for layer 3
-	applyDerivativesLast(layer_3, layer_2, 10, final_Yj);
+	// apply derivatives for last layer
+	applyDerivativesLast(layerList.end()[-1], layerList.end()[-2], final_Yj);
 
-	// calculate derivatives for layer 2
-	applyDerivatives(layer_3, layer_2, layer_1, 16, 10);
-
-	// calculate derivatives for layer 1
-	applyDerivatives(layer_2, layer_1, layer_0, 16, 16);
+	//derivatives for precursor layers
+	for (int i = layerList.size() - 2; i > 0; --i)	// from 2nd last layer to 2nd layer
+	{
+		applyDerivatives(layerList[i + 1], layerList[i], layerList[i - 1]);
+	}
 }
 
 // tested
-void printInfo(Neuron layer_1[16], Neuron layer_2[16], Neuron layer_3[10])
+void printInfo(vector< vector<Neuron> >& layerList)
 {
-	// layer 1
-	cout << "Layer 1 ========================================================================================================================================" << endl;
-	for (int i = 0; i < 16; ++i)
+	for (int i = 1; i < layerList.size(); ++i)
 	{
-		layer_1[i].print();
-	}
-
-	// layer 2
-	cout << "Layer 2 ========================================================================================================================================" << endl;
-	for (int i = 0; i < 16; ++i)
-	{
-		layer_2[i].print();
-	}
-
-	// layer 3
-	cout << "Layer 3 ========================================================================================================================================" << endl;
-	for (int i = 0; i < 10; ++i)
-	{
-		layer_3[i].print();
+		cout << "Layer " << i << " ========================================================================================================================================" << endl;
+		for (int k = 0; k < layerList[i].size(); ++k)
+		{
+			layerList[i][k].print();
+		}
 	}
 }
 
@@ -437,92 +395,67 @@ void MLP_train()
 	readMnistFile("train-images.idx3-ubyte", contents);
 	readMnistFile("train-labels.idx1-ubyte", labels);
 
-	// predefined
-	Neuron layer_0[784];	// pixels
-	Neuron layer_1[16];	// hidden layer
-	Neuron layer_2[16];	// hidden layer
-	Neuron layer_3[10];	// activation layer (each neuron = a digit)
+	// dynamic
+	vector< vector<Neuron> > layerList;
+
+	// how many layers
+	layerList.resize(4);
+
+	// each layer
+	layerList[0].resize(784);	// image (16 x 16)
+	layerList[1].resize(16);
+	layerList[2].resize(16);
+	layerList[3].resize(10);
 
 	// init
-	initNeuron(layer_1, layer_2, layer_3);
+	initNeuron(layerList);
 
 	// train for 60k times
 	for (int x = 0; x < TOTAL_SERIES; ++x)
 	{
-		for (int i = 0; i < TOTAL_ITERATIONS; ++i)
+		for (int z = 0; z < TOTAL_ITERATIONS; ++z)
 		{
 			// init
-			getImageAndDetails(contents, yRow, labels, layer_0, i);
+			getImageAndDetails(contents, yRow, labels, layerList[0], z);
 
 			// calculate activations
-			for (int i = 0; i < 16; ++i)
+			for (int i = 1; i < layerList.size(); ++i)
 			{
-				layer_1[i].calculateActivation(layer_0);
-			}
-			for (int i = 0; i < 16; ++i)
-			{
-				layer_2[i].calculateActivation(layer_1);
-			}
-			for (int i = 0; i < 10; ++i)
-			{
-				layer_3[i].calculateActivation(layer_2);
+				for (int j = 0; j < layerList[i].size(); ++j)
+				{
+					layerList[i][j].calculateActivation(layerList[i - 1]);
+				}
 			}
 
 			//get total cost
-			double cost = getTotalCost(layer_3, yRow);
-			if (i % 500 == 0)
+			double cost = getTotalCost(layerList.back(), yRow);
+			if (z % 500 == 0)
 			{
 				bool belowThreshold = cost < 0.01;
-				cout << "Series: " << x << "  Training image: " << i << "  Total cost: " << cost << " Below threshold: " << belowThreshold << endl;
+				cout << "Series: " << x << "  Training image: " << z << "  Total cost: " << cost << " Below threshold: " << belowThreshold << endl;
 			}
 
 			// do backpropagation
-			backPropagation(layer_0, layer_1, layer_2, layer_3, yRow);
+			backPropagation(layerList, yRow);
 
 			// apply gradient
-			int iteration = i + (x * TOTAL_ITERATIONS);
-			for (int i = 0; i < 16; ++i)
+			int iteration = z + (x * TOTAL_ITERATIONS);
+			for (int i = 1; i < layerList.size(); ++i)
 			{
-				layer_1[i].apply(iteration);
-			}
-			for (int i = 0; i < 16; ++i)
-			{
-				layer_2[i].apply(iteration);
-			}
-			for (int i = 0; i < 10; ++i)
-			{
-				layer_3[i].apply(iteration);
+				for (int j = 0; j < layerList[i].size(); ++j)
+				{
+					layerList[i][j].apply(iteration);
+				}
 			}
 
 			// print
-			// printInfo(layer_1, layer_2, layer_3);
+			// printInfo(layerList);
 		}
 	}
 
-	// see results again
-	//getImageAndDetails(contents, yRow, labels, layer_0, 56);
-
-	//// calculate activations
-	//for (int i = 0; i < 16; ++i)
-	//{
-	//	layer_1[i].calculateActivation(layer_0);
-	//}
-	//for (int i = 0; i < 16; ++i)
-	//{
-	//	layer_2[i].calculateActivation(layer_1);
-	//}
-	//for (int i = 0; i < 10; ++i)
-	//{
-	//	layer_3[i].calculateActivation(layer_2);
-	//}
-
-	////get total cost
-	//double cost = getTotalCost(layer_3, yRow);
-	//cout << "Series: 1  Training image: 56  Total cost: " << cost << endl;
-
-	 // save weights and biases to txt
-	 saveToTextFile(layer_1, layer_2, layer_3);
-	 cout << "Final weights and biases saved to text file!" << endl;
+	// save weights and biases to txt
+	saveToTextFile(layerList);
+	cout << "Final weights and biases saved to text file!" << endl;
 }
 
 /************************************************************************************************************
@@ -536,14 +469,20 @@ void MLP_test()
 	readMnistFile("t10k-images.idx3-ubyte", contents);
 	readMnistFile("t10k-labels.idx1-ubyte", labels);
 
-	// predefined
-	Neuron layer_0[784];	// pixels
-	Neuron layer_1[16];	// hidden layer
-	Neuron layer_2[16];	// hidden layer
-	Neuron layer_3[10];	// activation layer (each neuron = a digit)
+	// dynamic
+	vector< vector<Neuron> > layerList;
+
+	// how many layers
+	layerList.resize(4);
+
+	// each layer
+	layerList[0].resize(784);	// image (16 x 16)
+	layerList[1].resize(16);
+	layerList[2].resize(16);
+	layerList[3].resize(10);
 
 	// read off text file
-	readFromTextFile(layer_1, layer_2, layer_3);
+	readFromTextFile(layerList);
 
 	// test
 	// printInfo(layer_1, layer_2, layer_3);
@@ -554,32 +493,27 @@ void MLP_test()
 	int startIndex = 0;
 	for (int i = startIndex; i < testTotal + startIndex; ++i)
 	{
-		getImage1D(contents, i, layer_0);
+		getImage1D(contents, i, layerList[0]);
 		int label = getImageLabel(labels, i);
 
 		// calculate activations
-		for (int i = 0; i < 16; ++i)
+		for (int i = 1; i < layerList.size(); ++i)
 		{
-			layer_1[i].calculateActivation(layer_0);
-		}
-		for (int i = 0; i < 16; ++i)
-		{
-			layer_2[i].calculateActivation(layer_1);
-		}
-		for (int i = 0; i < 10; ++i)
-		{
-			layer_3[i].calculateActivation(layer_2);
+			for (int k = 0; k < layerList[i].size(); ++k)
+			{
+				layerList[i][k].calculateActivation(layerList[i - 1]);
+			}
 		}
 
 		// the predicted digit corr. to the 'brightest' neuron of last layer
 		int brightestNeuron = 0;
 		double brightestNeuronVal = 0.0;
-		for (int i = 0; i < 10; ++i)
+		for (int i = 0; i < layerList.back().size(); ++i)
 		{
-			if (layer_3[i].a > brightestNeuronVal)
+			if (layerList.back()[i].a > brightestNeuronVal)
 			{
 				brightestNeuron = i;
-				brightestNeuronVal = layer_3[i].a;
+				brightestNeuronVal = layerList.back()[i].a;
 			}
 		}
 
@@ -587,12 +521,12 @@ void MLP_test()
 		if (brightestNeuron == label)
 		{
 			// cout << "Correct guess at " << i << ", " << label << " and " << brightestNeuron << endl;
-			// printImage(layer_0);
+			// printImage(layerList[0]);
 			correctCount++;
 		}
 		else {
 			// cout << "Wrong guess at " << i << ", correct label is " << label << ", not " << brightestNeuron << endl;
-			// printImage(layer_0);
+			// printImage(layerList[0]);
 		}
 
 		if (i % 500 == 0)

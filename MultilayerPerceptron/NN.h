@@ -50,13 +50,13 @@ public:
 	void initFromFile(int layer, int index, const vector<double>& weights, double bias);
 
 	// calculate activations
-	void calculateActivation(Neuron* prevLayer);
+	void calculateActivation(vector<Neuron>& prevLayer);
 
 	// gradient descent L
-	void applyDerivativesLast(Neuron* prevLayer, double Yj);
+	void applyDerivativesLast(vector<Neuron>& prevLayer, double Yj);
 
 	// gradient descent L - 1
-	void applyDerivatives(Neuron* nextLayer, Neuron* prevLayer, int nextLayerSize);
+	void applyDerivatives(vector<Neuron>& nextLayer, vector<Neuron>& prevLayer);
 
 	void apply(int iteration);
 

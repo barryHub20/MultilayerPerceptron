@@ -1,7 +1,7 @@
 #include "NN.h"
 
 Neuron::Neuron()
-{ 
+{
 	// indexing
 	layer = index = 0;
 	localGradient = bias = biasGradient = z = a = 0.0;
@@ -24,12 +24,12 @@ void Neuron::initRandomize(int layer, int index, int totalWeights)
 	weights.resize(totalWeights);
 	weightsGradients.resize(totalWeights);
 	prevGradients.resize(totalWeights);
+	double divider = 0.0;
 	for (int i = 0; i < totalWeights; ++i)
 	{
-		double divider = 0.0;
 		if (layer == 1)
 		{
-			divider = 10000000000.0;
+			divider = 10000000.0;
 		}
 		else if (layer == 2)
 		{
@@ -73,7 +73,7 @@ void Neuron::initFromFile(int layer, int index, const vector<double>& _weights, 
 	this->bias = bias;
 }
 
-void Neuron::calculateActivation(Neuron* prevLayer)
+void Neuron::calculateActivation(vector<Neuron>& prevLayer)
 {
 	// calculate Z
 	z = 0.0;
@@ -87,7 +87,7 @@ void Neuron::calculateActivation(Neuron* prevLayer)
 	a = sigmoldFunction(z);
 }
 
-void Neuron::applyDerivativesLast(Neuron* prevLayer, double Yj)
+void Neuron::applyDerivativesLast(vector<Neuron>& prevLayer, double Yj)
 {
 	localGradient = 2.0 * (a - Yj) * sigmoldDerivative(a);
 
@@ -101,11 +101,11 @@ void Neuron::applyDerivativesLast(Neuron* prevLayer, double Yj)
 	biasGradient = localGradient;
 }
 
-void Neuron::applyDerivatives(Neuron* nextLayer, Neuron* prevLayer, int nextLayerSize)
+void Neuron::applyDerivatives(vector<Neuron>& nextLayer, vector<Neuron>& prevLayer)
 {
 	// get local gradient
 	localGradient = 0.0;
-	for (int i = 0; i < nextLayerSize; ++i)
+	for (int i = 0; i < nextLayer.size(); ++i)
 	{
 		localGradient += nextLayer[i].localGradient * nextLayer[i].weights[this->index];
 	}
@@ -124,10 +124,15 @@ void Neuron::applyDerivatives(Neuron* nextLayer, Neuron* prevLayer, int nextLaye
 void Neuron::print()
 {
 	cout << layer << ' ' << index << " ======================================================" << endl;
-	cout << "Weights: ";
+	/*cout << "Weights: ";
 	for (int i = 0; i < weights.size(); ++i)
 	{
 		cout << weights[i] << ", ";
+	}*/
+	cout << "weightsGradients: ";
+	for (int i = 0; i < weightsGradients.size(); ++i)
+	{
+		cout << weightsGradients[i] << ", ";
 	}
 	cout << endl;
 	cout << "Bias: " << bias << endl;

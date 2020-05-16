@@ -1,0 +1,2 @@
+Legend: Series count, learning rate, multiplier layer 1, ~ layer 2, ~ layer 3, pos/neg chance
+Optimal configuration: 30, 0.03, 10000000.0, 1000000.0, 1000.0, rand 50%
