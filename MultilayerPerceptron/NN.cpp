@@ -34,19 +34,6 @@ void Neuron::initRandomize(int layer, int index, int totalWeights)
 
 	for (int i = 0; i < totalWeights; ++i)
 	{
-		/*if (layer == 1)
-		{
-			divider = 10000000.0;
-		}
-		else if (layer == 2)
-		{
-			divider = 1000000.0;
-		}
-		else
-		{
-			divider = 1000.0;
-		}*/
-
 		weights[i] = (double)(rand() % 100 + 0) / divider;
 
 		if (rand() % 2 == 0)
@@ -92,12 +79,12 @@ void Neuron::calculateActivation(vector<Neuron>& prevLayer)
 	z += bias;
 
 	// calculate a
-	a = sigmoldFunction(z);
+	a = logistics(z);
 }
 
 void Neuron::applyDerivativesLast(vector<Neuron>& prevLayer, double Yj)
 {
-	localGradient = 2.0 * (a - Yj) * sigmoldDerivative(a);
+	localGradient = 2.0 * (a - Yj) * logisticsDerivative(a);
 
 	// for each weight
 	for (int i = 0; i < weights.size(); ++i)
@@ -117,7 +104,7 @@ void Neuron::applyDerivatives(vector<Neuron>& nextLayer, vector<Neuron>& prevLay
 	{
 		localGradient += nextLayer[i].localGradient * nextLayer[i].weights[this->index];
 	}
-	localGradient *= sigmoldDerivative(a);
+	localGradient *= logisticsDerivative(a);
 
 	// for each weight
 	for (int i = 0; i < weights.size(); ++i)
@@ -127,6 +114,18 @@ void Neuron::applyDerivatives(vector<Neuron>& nextLayer, vector<Neuron>& prevLay
 
 	// bias
 	biasGradient = localGradient;
+}
+
+double Neuron::logistics(double x)
+{
+	// return sigmoldFunction(x);
+	return ReLU_Function(x);
+}
+
+double Neuron::logisticsDerivative(double logisticVal)
+{
+	// return sigmoldDerivative(logisticVal);
+	return ReLU_Derivative(logisticVal);
 }
 
 void Neuron::print()
@@ -205,4 +204,21 @@ double sigmoldFunction(double x)
 double sigmoldDerivative(double sigmoldVal)
 {
 	return sigmoldVal * (1.0 - sigmoldVal);
+}
+
+double ReLU_Function(double x)
+{
+	return max(x, 0.0);
+}
+
+double ReLU_Derivative(double reluVal)
+{
+	if (reluVal > 0.0)
+	{
+		return 1.0;
+	}
+	else
+	{
+		return 0.0;
+	}
 }

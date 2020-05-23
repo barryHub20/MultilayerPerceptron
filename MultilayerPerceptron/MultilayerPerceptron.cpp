@@ -378,7 +378,7 @@ void MLP_train(vector< vector<Neuron> >& layerList)
 	initNeuron(layerList);
 
 	// train for 60k times
-	for (int x = 0; x < TOTAL_SERIES; ++x)
+	for (int x = 0; x < TOTAL_EPOCH; ++x)
 	{
 		for (int z = 0; z < TOTAL_ITERATIONS; ++z)
 		{
@@ -399,7 +399,7 @@ void MLP_train(vector< vector<Neuron> >& layerList)
 			if (z % 500 == 0)
 			{
 				bool belowThreshold = cost < 0.01;
-				cout << "Series: " << x << "  Training image: " << z << "  Total cost: " << cost << " Below threshold: " << belowThreshold << endl;
+				cout << "Epoch: " << x << " Below threshold: " << belowThreshold << "  Training image: " << z << "  Total cost: " << cost << endl;
 			}
 
 			// do backpropagation
@@ -515,8 +515,8 @@ int main()
 
 	// each layer
 	layerList[0].resize(784);	// image (16 x 16)
-	layerList[1].resize(26);
-	layerList[2].resize(26);
+	layerList[1].resize(24);
+	layerList[2].resize(24);
 	layerList[3].resize(10);
 
 	MLP_train(layerList);

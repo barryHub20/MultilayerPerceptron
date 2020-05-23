@@ -4,19 +4,23 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 using namespace std;
-#define TOTAL_SERIES 30
+#define TOTAL_EPOCH 50
 #define TOTAL_ITERATIONS 60000
 #define MOMENTUM 0.9
-const double learningRate = 0.03;
+const double learningRate = 0.001;
 
 /************************************************************************************************************
 Helper functions
 *************************************************************************************************************/
+// Logistic functions
 double sigmoldFunction(double x);
-double sigmoldDerivative(double rawValue);
+double sigmoldDerivative(double sigmoldVal);
+double ReLU_Function(double x);
+double ReLU_Derivative(double reluVal);
 
 /************************************************************************************************************
 Neuron, 0.0 >= value <= 1.0
@@ -61,6 +65,10 @@ public:
 	void applyDerivatives(vector<Neuron>& nextLayer, vector<Neuron>& prevLayer);
 
 	void apply(int iteration);
+
+	// helper functions
+	double logistics(double x);
+	double logisticsDerivative(double logisticVal);
 
 	// misc funtions
 	void print();
