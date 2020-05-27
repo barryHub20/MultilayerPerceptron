@@ -305,7 +305,7 @@ double getTotalCost(vector<Neuron>& lastLayer, vector<double>& yRow)
 	{
 		cost += (lastLayer[i].a - yRow[i]) * (lastLayer[i].a - yRow[i]);
 	}
-	return cost;
+	return cost * 0.5;
 }
 
 // tested
@@ -515,7 +515,7 @@ int main()
 
 	// each layer
 	layerList[0].resize(784);	// image (16 x 16)
-	layerList[1].resize(24);
+	layerList[1].resize(25);
 	layerList[2].resize(24);
 	layerList[3].resize(10);
 
